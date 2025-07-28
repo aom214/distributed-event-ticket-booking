@@ -1,0 +1,110 @@
+version: '3.8'
+
+services:
+  # AUTH SERVICE & DB
+  auth-db:
+    image: mongo:7
+    container_name: auth-db
+    restart: unless-stopped
+    ports:
+      - "27016:27017"
+    volumes:
+      - auth-db-data:/data/db
+    networks:
+      - event-network
+
+  auth-service:
+    build:
+      context: ./auth-service
+      dockerfile: Dockerfile
+    container_name: auth-service
+    working_dir: /app
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./auth-service:/app
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
+      - MONGO_URI=mongodb://auth-db:27017/auth_db
+      - JWT_SECRET=your_jwt_secret
+    depends_on:
+      - auth-db
+    command: npm run dev
+    networks:
+      - event-network
+
+  # EVENT SERVICE & DB
+  event-db:
+    image: mongo:7
+    container_name: event-db
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - event-db-data:/data/db
+    networks:
+      - event-network
+
+  event-service:
+    build:
+      context: ./event-service
+      dockerfile: Dockerfile
+    container_name: event-service
+    working_dir: /app
+    ports:
+      - "5001:5000"
+    volumes:
+      - ./event-service:/app
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
+      - MONGO_URI=mongodb://event-db:27017/event_db
+      - JWT_SECRET=your_jwt_secret
+    depends_on:
+      - event-db
+    command: npm run dev
+    networks:
+      - event-network
+
+  # TICKET SERVICE & DB
+  ticket-db:
+    image: mongo:7
+    container_name: ticket-db
+    restart: unless-stopped
+    ports:
+      - "27018:27017"
+    volumes:
+      - ticket-db-data:/data/db
+    networks:
+      - event-network
+
+  ticket-service:
+    build:
+      context: ./ticket-service
+      dockerfile: Dockerfile
+    container_name: ticket-service
+    working_dir: /app
+    ports:
+      - "5002:5000"
+    volumes:
+      - ./ticket-service:/app
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
+      - MONGO_URI=mongodb://ticket-db:27017/ticket_db
+      - JWT_SECRET=your_jwt_secret
+    depends_on:
+      - ticket-db
+    command: npm run dev
+    networks:
+      - event-network
+
+networks:
+  event-network:
+    driver: bridge
+
+volumes:
+  auth-db-data:
+  event-db-data:
+  ticket-db-data:
