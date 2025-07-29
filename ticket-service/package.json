@@ -1,13 +1,16 @@
 {
   "dependencies": {
+    "amqplib": "^0.10.8",
+    "cookie-parser": "^1.4.7",
+    "dotenv": "^17.2.1",
     "express": "^5.1.0",
     "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.16.5",
     "nodemon": "^3.1.10"
   },
   "name": "ticket-service",
   "version": "1.0.0",
   "main": "index.js",
-  "devDependencies": {},
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "nodemon src/index.js"

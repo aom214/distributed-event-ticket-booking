@@ -2,6 +2,8 @@ const Event = require('../models/event.models');
 
 // Create Event
 const createEvent = async (req, res) => {
+  console.log(req.user.id)
+  console.log(req.user)
   try {
     const {
       title,
@@ -80,13 +82,13 @@ const deleteEvent = async (req, res) => {
     const event = await Event.findById(req.params.id);
     if (!event) return res.status(404).json({ message: 'Event not found' });
 
-    // Optional: check if current user is creator
     if (event.createdBy.toString() !== req.user.id) {
       return res.status(403).json({ message: 'Unauthorized to delete this event' });
     }
 
-    await event.remove();
+    await Event.findByIdAndDelete(req.params.id);
     res.status(200).json({ message: 'Event deleted successfully' });
+
   } catch (err) {
     res.status(500).json({ message: 'Error deleting event', error: err.message });
   }

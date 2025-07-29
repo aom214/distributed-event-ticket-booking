@@ -8,14 +8,13 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 5001;
 
 const startServer = async () => {
   try {
     await db_connect();
     app.listen(PORT, () => {
       console.log(`🚀 Server running on port ${PORT}`);
-      console.log("successfully commited----")
       console.log("successfully commited----")
     });
   } catch (err) {
@@ -25,4 +24,4 @@ const startServer = async () => {
 };
 
 startServer();
-app.use('/api/v1/ticket',router)
+app.use('/api/v1/events',router)

@@ -53,7 +53,7 @@ services:
     container_name: event-service
     working_dir: /app
     ports:
-      - "5001:5000"
+      - "5001:5001"
     volumes:
       - ./event-service:/app
       - /app/node_modules
@@ -61,8 +61,10 @@ services:
       - NODE_ENV=development
       - MONGO_URI=mongodb://event-db:27017/event_db
       - JWT_SECRET=your_jwt_secret
+      - RABBITMQ_URL=amqp://rabbitmq:5672
     depends_on:
       - event-db
+      - rabbitmq
     command: npm run dev
     networks:
       - event-network
@@ -86,7 +88,7 @@ services:
     container_name: ticket-service
     working_dir: /app
     ports:
-      - "5002:5000"
+      - "5002:5002"
     volumes:
       - ./ticket-service:/app
       - /app/node_modules
@@ -94,9 +96,25 @@ services:
       - NODE_ENV=development
       - MONGO_URI=mongodb://ticket-db:27017/ticket_db
       - JWT_SECRET=your_jwt_secret
+      - RABBITMQ_URL=amqp://rabbitmq:5672
     depends_on:
       - ticket-db
+      - rabbitmq
     command: npm run dev
+    networks:
+      - event-network
+
+  # RABBITMQ BROKER
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    restart: unless-stopped
+    ports:
+      - "5672:5672"     # AMQP protocol
+      - "15672:15672"   # Web management UI
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
     networks:
       - event-network
 

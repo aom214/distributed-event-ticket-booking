@@ -1,5 +1,5 @@
 const express = require('express')
-const {register,Login, logout} = require('../controller/userController.js')
+const {register,login, logout} = require('../controller/userController.js')
 const verify_user = require('../middleware/user.middleware.js')
 const router = express.Router();
 
@@ -10,7 +10,7 @@ router.get('/health', (req, res) => {
 router.post('/user/register',register)
 
 
-router.post('/user/login',Login)
+router.post('/user/login',verify_user,login)
 
 router.post('/user/logout',verify_user,logout)
 
