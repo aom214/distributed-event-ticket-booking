@@ -1,6 +1,25 @@
 version: '3.8'
 
 services:
+  # RABBITMQ BROKER
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    restart: unless-stopped
+    ports:
+      - "5672:5672"     # AMQP protocol
+      - "15672:15672"   # Web management UI
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    networks:
+      - event-network
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   # AUTH SERVICE & DB
   auth-db:
     image: mongo:7
@@ -29,7 +48,10 @@ services:
       - MONGO_URI=mongodb://auth-db:27017/auth_db
       - JWT_SECRET=your_jwt_secret
     depends_on:
-      - auth-db
+      auth-db:
+        condition: service_started
+      rabbitmq:
+        condition: service_healthy
     command: npm run dev
     networks:
       - event-network
@@ -63,8 +85,10 @@ services:
       - JWT_SECRET=your_jwt_secret
       - RABBITMQ_URL=amqp://rabbitmq:5672
     depends_on:
-      - event-db
-      - rabbitmq
+      event-db:
+        condition: service_started
+      rabbitmq:
+        condition: service_healthy
     command: npm run dev
     networks:
       - event-network
@@ -98,23 +122,11 @@ services:
       - JWT_SECRET=your_jwt_secret
       - RABBITMQ_URL=amqp://rabbitmq:5672
     depends_on:
-      - ticket-db
-      - rabbitmq
+      ticket-db:
+        condition: service_started
+      rabbitmq:
+        condition: service_healthy
     command: npm run dev
-    networks:
-      - event-network
-
-  # RABBITMQ BROKER
-  rabbitmq:
-    image: rabbitmq:3-management
-    container_name: rabbitmq
-    restart: unless-stopped
-    ports:
-      - "5672:5672"     # AMQP protocol
-      - "15672:15672"   # Web management UI
-    environment:
-      RABBITMQ_DEFAULT_USER: guest
-      RABBITMQ_DEFAULT_PASS: guest
     networks:
       - event-network
 

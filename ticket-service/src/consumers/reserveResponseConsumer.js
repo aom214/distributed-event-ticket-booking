@@ -1,5 +1,5 @@
 const { getChannel } = require("../utils/rabbitmq");
-const Booking = require("../models/Booking");
+const handleReserveMessage = require("../utils/handleReserveMessage.js");
 
 const consumeReserveQueue = async () => {
   const channel = getChannel();
@@ -9,16 +9,9 @@ const consumeReserveQueue = async () => {
 
     console.log("📩 Received message from event.Reserve:", data);
 
-    const { bookingId, status } = data;
+    await handleReserveMessage(data);
 
-    try {
-      await Booking.findByIdAndUpdate(bookingId, {
-        status: status === "reserved" ? "confirmed" : "failed",
-      });
-      channel.ack(msg);
-    } catch (err) {
-      console.error("❌ Error updating booking:", err.message);
-    }
+    channel.ack(msg);
   });
 };
 

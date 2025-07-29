@@ -17,6 +17,9 @@ const bookTicket = async (req, res) => {
     });
 
     const channel = getChannel();
+    
+    console.log(channel);
+
     const payload = {
       bookingId: booking._id,
       eventId,

@@ -3,6 +3,7 @@ const express = require('express');
 const db_connect = require('./database/index.js')
 const router = require('./routes/eventroute.js')
 const cookieParser = require('cookie-parser');
+const connectAndConsume = require("./consumers/reserve.consumer.js");
 
 const app = express();
 app.use(express.json());
@@ -17,6 +18,7 @@ const startServer = async () => {
       console.log(`🚀 Server running on port ${PORT}`);
       console.log("successfully commited----")
     });
+    connectAndConsume(); // Start RabbitMQ consumer after DB connectio
   } catch (err) {
     console.error('❌ Failed to start server:', err.message);
     process.exit(1);
