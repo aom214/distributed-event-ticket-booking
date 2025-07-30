@@ -130,6 +130,21 @@ services:
     networks:
       - event-network
 
+
+  notification-service:
+    build:
+      context: ./notification-service
+    container_name: notification-service
+    restart: always
+    env_file:
+      - ./notification-service/.env
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - event-network
+
+
 networks:
   event-network:
     driver: bridge

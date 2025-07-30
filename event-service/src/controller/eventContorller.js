@@ -1,9 +1,6 @@
 const Event = require('../models/event.models');
 
-// Create Event
 const createEvent = async (req, res) => {
-  console.log(req.user.id)
-  console.log(req.user)
   try {
     const {
       title,
@@ -23,44 +20,39 @@ const createEvent = async (req, res) => {
       time,
       price,
       capacity,
-      createdBy: req.user.id, // from JWT middleware
+      createdBy: req.user.id,
     });
 
     const savedEvent = await newEvent.save();
-    res.status(201).json(savedEvent);
-  } catch (err) {
-    res.status(500).json({ message: 'Error creating event', error: err.message });
+    return res.status(201).json(savedEvent);
+  } catch (error) {
+    return res.status(500).json({ message: 'Error creating event', error: error.message });
   }
 };
 
-// Get All Events
 const getAllEvents = async (req, res) => {
   try {
     const events = await Event.find();
-    res.status(200).json(events);
-  } catch (err) {
-    res.status(500).json({ message: 'Error fetching events', error: err.message });
+    return res.status(200).json(events);
+  } catch (error) {
+    return res.status(500).json({ message: 'Error fetching events', error: error.message });
   }
 };
 
-// Get Event by ID
 const getEventById = async (req, res) => {
   try {
     const event = await Event.findById(req.params.id);
     if (!event) return res.status(404).json({ message: 'Event not found' });
-    res.status(200).json(event);
-  } catch (err) {
-    res.status(500).json({ message: 'Error fetching event', error: err.message });
+    return res.status(200).json(event);
+  } catch (error) {
+    return res.status(500).json({ message: 'Error fetching event', error: error.message });
   }
 };
 
-// Update Event
 const updateEvent = async (req, res) => {
   try {
     const event = await Event.findById(req.params.id);
     if (!event) return res.status(404).json({ message: 'Event not found' });
-
-    // Optional: check if current user is creator
     if (event.createdBy.toString() !== req.user.id) {
       return res.status(403).json({ message: 'Unauthorized to update this event' });
     }
@@ -70,27 +62,24 @@ const updateEvent = async (req, res) => {
       runValidators: true,
     });
 
-    res.status(200).json(updatedEvent);
-  } catch (err) {
-    res.status(500).json({ message: 'Error updating event', error: err.message });
+    return res.status(200).json(updatedEvent);
+  } catch (error) {
+    return res.status(500).json({ message: 'Error updating event', error: error.message });
   }
 };
 
-// Delete Event
 const deleteEvent = async (req, res) => {
   try {
     const event = await Event.findById(req.params.id);
     if (!event) return res.status(404).json({ message: 'Event not found' });
-
     if (event.createdBy.toString() !== req.user.id) {
       return res.status(403).json({ message: 'Unauthorized to delete this event' });
     }
 
     await Event.findByIdAndDelete(req.params.id);
-    res.status(200).json({ message: 'Event deleted successfully' });
-
-  } catch (err) {
-    res.status(500).json({ message: 'Error deleting event', error: err.message });
+    return res.status(200).json({ message: 'Event deleted successfully' });
+  } catch (error) {
+    return res.status(500).json({ message: 'Error deleting event', error: error.message });
   }
 };
 
@@ -101,3 +90,4 @@ module.exports = {
   updateEvent,
   deleteEvent,
 };
+

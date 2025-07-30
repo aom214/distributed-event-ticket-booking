@@ -1,6 +1,9 @@
 const jwt = require("jsonwebtoken");
 
-const verify_user = async (req, res, next) => {
+/**
+ * Middleware to verify user from accessToken in cookies.
+ */
+const verifyUser = async (req, res, next) => {
   try {
     const accessToken = req.cookies.accessToken;
 
@@ -14,16 +17,15 @@ const verify_user = async (req, res, next) => {
           role: decoded.role,
         };
       } catch (err) {
-        console.warn("Invalid token, user not authenticated.");
-        // Do NOT throw error, just continue as unauthenticated
+        console.warn("Invalid token. Proceeding unauthenticated.");
       }
     }
 
-    return next(); // Always call next
+    return next(); // Proceed whether authenticated or not
   } catch (err) {
-    console.error("Error in verify_user:", err);
-    return next(); // Continue as unauthenticated
+    console.error("Error in verifyUser middleware:", err);
+    return next();
   }
 };
 
-module.exports = verify_user;
+module.exports = verifyUser;

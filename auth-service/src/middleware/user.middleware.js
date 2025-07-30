@@ -1,75 +1,68 @@
 const jwt = require("jsonwebtoken");
-const User = require('../models/user.schema.js');
-const GenerateTokens = require('../utils/GenerateTokens.js');
+const User = require("../models/user.schema");
+const generateTokens = require("../utils/GenerateTokens");
 
-const verify_user = async (req, res, next) => {
+const verifyUser = async (req, res, next) => {
   try {
-
-    console.log(req.cookies)
-
-    
     const accessToken = req.cookies.accessToken;
     const refreshToken = req.cookies.refreshToken;
 
-    // ✅ Step 1: If access token exists, try to verify it
     if (accessToken) {
       try {
         const decoded = jwt.verify(accessToken, process.env.ACCESS_TOKEN_SECRET);
         req.user = {
-          id: decoded._id,
+          id: decoded.id,
           email: decoded.email,
           name: decoded.name,
-          role: decoded.role
+          role: decoded.role,
         };
-        return next(); // ✅ exit middleware here
+        return next();
       } catch (err) {
-        // access token invalid — fallback to refresh token
+        // Access token invalid, proceed to refresh token check
       }
     }
 
-    // ✅ Step 2: If refresh token exists, verify and issue new tokens
     if (refreshToken) {
       const decoded = jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET);
+      const user = await User.findById(decoded.id);
 
-      const get_user = await User.findById(decoded._id);
-      if (!get_user || get_user.refreshToken !== refreshToken) {
-        return next(); // token doesn't match — treat as not logged in
+      if (!user || user.refreshToken !== refreshToken) {
+        return next();
       }
 
-      const { new_accessToken, new_refreshToken } = await GenerateTokens(get_user);
-      get_user.refreshToken = new_refreshToken;
-      await get_user.save();
+      const { accessToken: newAccessToken, refreshToken: newRefreshToken } = await generateTokens(user);
+      user.refreshToken = newRefreshToken;
+      await user.save();
 
-      res.cookie('accessToken', new_accessToken, {
+      res.cookie("accessToken", newAccessToken, {
         httpOnly: true,
         secure: true,
-        sameSite: 'Strict',
-        maxAge: 1000 * 60 * 15 // 15 min
+        sameSite: "Strict",
+        maxAge: 1000 * 60 * 15,
       });
 
-      res.cookie('refreshToken', new_refreshToken, {
+      res.cookie("refreshToken", newRefreshToken, {
         httpOnly: true,
         secure: true,
-        sameSite: 'Strict',
-        maxAge: 1000 * 60 * 60 * 24 * 7 // 7 days
+        sameSite: "Strict",
+        maxAge: 1000 * 60 * 60 * 24 * 7,
       });
 
       req.user = {
-        id: get_user._id,
-        email: get_user.email,
-        name: get_user.name,
-        role: get_user.role
+        id: user._id,
+        email: user.email,
+        name: user.name,
+        role: user.role,
       };
 
-      return next(); // ✅ exit here after success
+      return next();
     }
 
-    // ✅ No tokens or invalid — treat as guest
     return next();
   } catch (err) {
-    console.error("Error in verify_user:", err);
-    return next(); // Continue as unauthenticated
+    console.error("Token verification failed:", err);
+    return next();
   }
 };
 
-module.exports = verify_user;
+module.exports = verifyUser;

@@ -1,18 +1,11 @@
-const { getChannel } = require("../utils/rabbitmq");
-const handleReserveMessage = require("../utils/handleReserveMessage.js");
+const { consumeFromQueue } = require("../utils/rabbitmq.js");
+const handleReserveMessage = require("../utils/handleReserveMessage");
 
+/**
+ * Starts consuming reservation status messages from event.Reserve queue.
+ */
 const consumeReserveQueue = async () => {
-  const channel = getChannel();
-
-  await channel.consume("event.Reserve", async (msg) => {
-    const data = JSON.parse(msg.content.toString());
-
-    console.log("📩 Received message from event.Reserve:", data);
-
-    await handleReserveMessage(data);
-
-    channel.ack(msg);
-  });
+  await consumeFromQueue("event.Reserve", handleReserveMessage);
 };
 
 module.exports = consumeReserveQueue;
