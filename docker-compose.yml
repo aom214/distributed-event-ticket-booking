@@ -7,8 +7,8 @@ services:
     container_name: rabbitmq
     restart: unless-stopped
     ports:
-      - "5672:5672"     # AMQP protocol
-      - "15672:15672"   # Web management UI
+      - "5672:5672"
+      - "15672:15672"
     environment:
       RABBITMQ_DEFAULT_USER: guest
       RABBITMQ_DEFAULT_PASS: guest
@@ -130,7 +130,7 @@ services:
     networks:
       - event-network
 
-
+  # NOTIFICATION SERVICE
   notification-service:
     build:
       context: ./notification-service
@@ -144,6 +144,20 @@ services:
     networks:
       - event-network
 
+  # NGINX REVERSE PROXY
+  nginx:
+    image: nginx:latest
+    container_name: nginx
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+    depends_on:
+      - auth-service
+      - event-service
+      - ticket-service
+    networks:
+      - event-network
 
 networks:
   event-network:
